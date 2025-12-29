@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduConnect - Login & Register</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Enable class-based dark mode in Tailwind CDN
+        try { tailwind.config = { darkMode: 'class' }; } catch (_) {}
+    </script>
+    <script>
+        // Global theme helpers
+        window.__setInitialTheme = function() {
+            try {
+                const stored = localStorage.getItem('theme');
+                const preferDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (stored === 'dark' || (!stored && preferDark)) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            } catch (_) {}
+        };
+        __setInitialTheme();
+        window.toggleTheme = function() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        };
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .slider-container {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        .slider {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+        
+        .slide {
+            min-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .slider-nav {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+        
+        .slider-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .slider-dot.active {
+            background-color: white;
+        }
+        
+        .form-container {
+            transition: all 0.3s ease;
+        }
+        
+        .form-container.hidden {
+            opacity: 0;
+            height: 0;
+            overflow: hidden;
+        }
+        
+        .form-container.visible {
+            opacity: 1;
+            height: auto;
+        }
+        
+        .input-group {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        
+        .input-group input {
+            padding-left: 40px;
+        }
+        
+        .input-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7280;
+        }
+        
+        .role-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .role-btn.active {
+            background-color: #ff9800;
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 dark:text-gray-100 min-h-screen flex items-center justify-center p-4">
+    <!-- Flash Messages -->
+
+
+    <div class="w-full max-w-4xl bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
+        <div class="flex flex-col md:flex-row">
+            <!-- Left Side - Slider -->
+            <div class="w-full md:w-1/2 bg-gradient-to-br from-orange-600 to-orange-800 text-white p-8">
+                    <div class="text-center mb-8 flex items-center justify-between">
+                    <div>
+                        <h1 class="text-3xl font-bold">EduConnect</h1>
+                        <p class="mt-2">Connecting educators and learners</p>
+                    </div>
+                    <button type="button" onclick="toggleTheme()" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-white/20 hover:bg-white/30">
+                        <i class="fas fa-moon"></i>
+                        <span class="hidden sm:inline">Theme</span>
+                    </button>
+                </div>
+                
+                <div class="slider-container h-64">
+                    <div class="slider">
+                        <div class="slide p-4 flex flex-col items-center justify-center text-center">
+                            <i class="fas fa-chalkboard-teacher text-5xl mb-4"></i>
+                            <h3 class="text-xl font-semibold mb-2">For Teachers</h3>
+                            <p>Manage your classes, create assignments, and track student progress all in one place.</p>
+                        </div>
+                        <div class="slide p-4 flex flex-col items-center justify-center text-center">
+                            <i class="fas fa-user-graduate text-5xl mb-4"></i>
+                            <h3 class="text-xl font-semibold mb-2">For Students</h3>
+                            <p>Access your courses, submit assignments, and collaborate with classmates effortlessly.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="slider-nav">
+                        <div class="slider-dot active" data-slide="0"></div>
+                        <div class="slider-dot" data-slide="1"></div>
+                    </div>
+                </div>
+                
+                <div class="mt-8 text-center">
+                    <p class="text-sm opacity-80">Join thousands of educators and learners already using EduConnect</p>
+                </div>
+            </div>
+            
+            <!-- Right Side - Forms -->
+            <div class="w-full md:w-1/2 p-8">
+                <div class="flex justify-center mb-8">
+                    <div class="inline-flex rounded-md shadow-sm" role="group">
+                        <button type="button" id="login-tab" class="role-btn active px-4 py-2 text-sm font-medium rounded-l-lg border border-gray-200">
+                            Login
+                        </button>
+                        <button type="button" id="register-tab" class="role-btn px-4 py-2 text-sm font-medium rounded-r-lg border border-gray-200">
+                            Register
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Login Form -->
+                <div id="login-form" class="form-container visible">
+                    <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Welcome Back</h2>
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="max-w-4xl mx-auto mb-4 px-4">
+      {% for category, message in messages %}
+        <div class="mb-2 px-4 py-2 rounded-lg
+            {% if category == 'success' %}bg-green-100 text-green-800{% endif %}
+            {% if category == 'danger' %}bg-red-100 text-red-800{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+                    <div class="flex justify-center mb-6">
+                        <div class="inline-flex rounded-md shadow-sm" role="group">
+                            <button type="button" id="teacher-login-btn" class="role-btn active px-4 py-2 text-sm font-medium rounded-l-lg border border-gray-200">
+                                <i class="fas fa-chalkboard-teacher mr-2"></i> Teacher
+                            </button>
+                            <button type="button" id="student-login-btn" class="role-btn px-4 py-2 text-sm font-medium rounded-r-lg border border-gray-200">
+                                <i class="fas fa-user-graduate mr-2"></i> Student
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <form id="teacher-login" class="space-y-4" action="/login/teacher" method="POST">
+                        <div class="input-group">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input type="email" name="email" placeholder="Email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition">
+                        </div>
+                        
+                        <div class="input-group">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" name="password" placeholder="Password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition">
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <input id="remember-me" type="checkbox" class="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded">
+                                <label for="remember-me" class="ml-2 block text-sm text-gray-700">Remember me</label>
+                            </div>
+                            
+                            <a href="#" class="text-sm text-orange-600 hover:text-orange-800">Forgot password?</a>
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-medium py-2 px-4 rounded-lg transition duration-300">
+                            Login as Teacher
+                        </button>
+                    </form>
+                    
+                    <form id="student-login" class="space-y-4 hidden" action="/login/student" method="POST">
+                        <div class="input-group">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input type="email" name="email" placeholder="Email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition">
+                        </div>
+                        
+                        <div class="input-group">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" name="password" placeholder="Password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition">
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <input id="remember-me-student" type="checkbox" class="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded">
+                                <label for="remember-me-student" class="ml-2 block text-sm text-gray-700">Remember me</label>
+                            </div>
+                            
+                            <a href="#" class="text-sm text-orange-600 hover:text-orange-800">Forgot password?</a>
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-medium py-2 px-4 rounded-lg transition duration-300">
+                            Login as Student
+                        </button>
+                    </form>
+                    
+                    <div class="mt-6 text-center">
+                        <p class="text-sm text-gray-600">Don't have an account? <button id="switch-to-register" class="text-orange-600 hover:text-orange-800 font-medium">Register</button></p>
+                    </div>
+                </div>
+                
+                <!-- Register Form -->
+                <div id="register-form" class="form-container hidden">
+                    <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Create Account</h2>
+                    
+                    <div class="flex justify-center mb-6">
+                        <div class="inline-flex rounded-md shadow-sm" role="group">
+                            <button type="button" id="teacher-register-btn" class="role-btn active px-4 py-2 text-sm font-medium rounded-l-lg border border-gray-200">
+                                <i class="fas fa-chalkboard-teacher mr-2"></i> Teacher
+                            </button>
+                            <button type="button" id="student-register-btn" class="role-btn px-4 py-2 text-sm font-medium rounded-r-lg border border-gray-200">
+                                <i class="fas fa-user-graduate mr-2"></i> Student
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <form id="teacher-register" class="space-y-4" action="/register/teacher" method="POST">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="input-group">
+                                <i class="fas fa-user input-icon"></i>
+                                <input type="text" name="first_name" placeholder="First Name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition">
+                            </div>
+                            
+                            <div class="input-group">
+                                <i class="fas fa-user input-icon"></i>
+                                <input type="text" name="last_name" placeholder="Last Name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition">
+                            </div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input type="email" name="email" placeholder="Email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition">
+                        </div>
+                        
+                        <div class="input-group">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" name="password" placeholder="Password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition">
+                        </div>
+                        
+                        <div class="input-group">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" name="confirm_password" placeholder="Confirm Password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition">
+                        </div>
+                        
+                        <div class="input-group">
+                            <i class="fas fa-school input-icon"></i>
+                            <input type="text" name="school_name" placeholder="School/Institution" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition">
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <input id="terms" type="checkbox" class="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded">
+                            <label for="terms" class="ml-2 block text-sm text-gray-700">I agree to the <a href="#" class="text-orange-600 hover:text-orange-800">Terms of Service</a> and <a href="#" class="text-orange-600 hover:text-orange-800">Privacy Policy</a></label>
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-medium py-2 px-4 rounded-lg transition duration-300">
+                            Register as Teacher
+                        </button>
+                    </form>
+                    
+                    <form id="student-register" class="space-y-4 hidden" action="/register/student" method="POST" enctype="multipart/form-data">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="input-group">
+                                <i class="fas fa-user input-icon"></i>
+                                <input type="text" name="first_name" placeholder="First Name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition">
+                            </div>
+                            
+                            <div class="input-group">
+                                <i class="fas fa-user input-icon"></i>
+                                <input type="text" name="last_name" placeholder="Last Name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition">
+                            </div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input type="email" name="email" placeholder="Email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition">
+                        </div>
+                        
+                        <div class="input-group">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" name="password" placeholder="Password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition">
+                        </div>
+                        
+                        <div class="input-group">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" name="confirm_password" placeholder="Confirm Password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition">
+                        </div>
+                        
+                        <div class="input-group">
+                            <i class="fas fa-graduation-cap input-icon"></i>
+                            <input type="text" name="student_id" placeholder="Student ID" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition">
+                        </div>
+
+                        <div class="mt-4">
+                            <h3 class="text-lg font-medium mb-2">Face Recognition</h3>
+                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                                <div id="face-preview" class="w-32 h-32 mx-auto bg-gray-100 rounded-full mb-4 overflow-hidden hidden">
+                                    <img id="face-image" class="w-full h-full object-cover" src="" alt="Captured face">
+                                </div>
+                                <button type="button" id="capture-face" class="bg-orange-100 text-orange-700 px-4 py-2 rounded-lg hover:bg-orange-200 transition">
+                                    <i class="fas fa-camera mr-2"></i>Capture Face
+                                </button>
+                                <input type="file" id="face-data" name="face_image" accept="image/jpeg" class="hidden">
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <input id="terms-student" type="checkbox" class="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded">
+                            <label for="terms-student" class="ml-2 block text-sm text-gray-700">I agree to the <a href="#" class="text-orange-600 hover:text-orange-800">Terms of Service</a> and <a href="#" class="text-orange-600 hover:text-orange-800">Privacy Policy</a></label>
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-medium py-2 px-4 rounded-lg transition duration-300">
+                            Register as Student
+                        </button>
+                    </form>
+                    
+                    <div class="mt-6 text-center">
+                        <p class="text-sm text-gray-600">Already have an account? <button id="switch-to-login" class="text-orange-600 hover:text-orange-800 font-medium">Login</button></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Slider functionality
+        const slider = document.querySelector('.slider');
+        const slides = document.querySelectorAll('.slide');
+        const dots = document.querySelectorAll('.slider-dot');
+        let currentSlide = 0;
+        
+        function goToSlide(index) {
+            slider.style.transform = `translateX(-${index * 100}%)`;
+            dots.forEach(dot => dot.classList.remove('active'));
+            dots[index].classList.add('active');
+            currentSlide = index;
+        }
+        
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => goToSlide(index));
+        });
+        
+        // Auto slide change
+        setInterval(() => {
+            currentSlide = (currentSlide + 1) % slides.length;
+            goToSlide(currentSlide);
+        }, 5000);
+        
+        // Toggle between login and register
+        const loginTab = document.getElementById('login-tab');
+        const registerTab = document.getElementById('register-tab');
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const switchToRegister = document.getElementById('switch-to-register');
+        const switchToLogin = document.getElementById('switch-to-login');
+        
+        loginTab.addEventListener('click', () => {
+            loginTab.classList.add('active');
+            registerTab.classList.remove('active');
+            loginForm.classList.remove('hidden');
+            registerForm.classList.add('hidden');
+        });
+        
+        registerTab.addEventListener('click', () => {
+            registerTab.classList.add('active');
+            loginTab.classList.remove('active');
+            registerForm.classList.remove('hidden');
+            loginForm.classList.add('hidden');
+        });
+        
+        switchToRegister.addEventListener('click', () => {
+            registerTab.classList.add('active');
+            loginTab.classList.remove('active');
+            registerForm.classList.remove('hidden');
+            loginForm.classList.add('hidden');
+        });
+        
+        switchToLogin.addEventListener('click', () => {
+            loginTab.classList.add('active');
+            registerTab.classList.remove('active');
+            loginForm.classList.remove('hidden');
+            registerForm.classList.add('hidden');
+        });
+        
+        // Toggle between teacher and student login
+        const teacherLoginBtn = document.getElementById('teacher-login-btn');
+        const studentLoginBtn = document.getElementById('student-login-btn');
+        const teacherLoginForm = document.getElementById('teacher-login');
+        const studentLoginForm = document.getElementById('student-login');
+        
+        teacherLoginBtn.addEventListener('click', () => {
+            teacherLoginBtn.classList.add('active');
+            studentLoginBtn.classList.remove('active');
+            teacherLoginForm.classList.remove('hidden');
+            studentLoginForm.classList.add('hidden');
+        });
+        
+        studentLoginBtn.addEventListener('click', () => {
+            studentLoginBtn.classList.add('active');
+            teacherLoginBtn.classList.remove('active');
+            studentLoginForm.classList.remove('hidden');
+            teacherLoginForm.classList.add('hidden');
+        });
+        
+        // Toggle between teacher and student register
+        const teacherRegisterBtn = document.getElementById('teacher-register-btn');
+        const studentRegisterBtn = document.getElementById('student-register-btn');
+        const teacherRegisterForm = document.getElementById('teacher-register');
+        const studentRegisterForm = document.getElementById('student-register');
+        
+        teacherRegisterBtn.addEventListener('click', () => {
+            teacherRegisterBtn.classList.add('active');
+            studentRegisterBtn.classList.remove('active');
+            teacherRegisterForm.classList.remove('hidden');
+            studentRegisterForm.classList.add('hidden');
+        });
+        
+        studentRegisterBtn.addEventListener('click', () => {
+            studentRegisterBtn.classList.add('active');
+            teacherRegisterBtn.classList.remove('active');
+            studentRegisterForm.classList.remove('hidden');
+            teacherRegisterForm.classList.add('hidden');
+        });
+        
+        // Face recognition
+        const captureBtn = document.getElementById('capture-face');
+        const facePreview = document.getElementById('face-preview');
+        const faceImage = document.getElementById('face-image');
+        const faceData = document.getElementById('face-data');
+        let stream = null;
+        let video = null;
+
+        captureBtn.addEventListener('click', async () => {
+            try {
+                if (!stream) {
+                    // First click - start camera and show video preview (prefer front camera)
+                    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                    if (!video) {
+                        video = document.createElement('video');
+                        video.setAttribute('id', 'face-video');
+                        video.setAttribute('class', 'w-full h-full object-cover rounded-full mb-2');
+                        video.setAttribute('autoplay', '');
+                        video.setAttribute('playsinline', '');
+                        facePreview.innerHTML = '';
+                        facePreview.appendChild(video);
+                    }
+                    video.srcObject = stream;
+                    video.play();
+                    facePreview.classList.remove('hidden');
+                    captureBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Capture Image';
+                } else {
+                    // Second click - capture image from video
+                    const canvas = document.createElement('canvas');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    // Stop stream
+                    stream.getTracks().forEach(track => track.stop());
+                    stream = null;
+                    
+                    // Convert to blob
+                    canvas.toBlob(function(blob) {
+                        // Create a preview URL for the image
+                        const previewUrl = URL.createObjectURL(blob);
+                        faceImage.src = previewUrl;
+                        
+                        // Store blob in FormData
+                        const formData = new FormData();
+                        formData.append('face_image', blob, 'face.jpg');
+                        
+                        // Store form data reference
+                        const container = new DataTransfer();
+                        const file = new File([blob], 'face.jpg', { type: 'image/jpeg' });
+                        container.items.add(file);
+                        faceData.files = container.files;
+                        
+                        // Show image preview
+                        facePreview.innerHTML = '';
+                        facePreview.appendChild(faceImage);
+                        facePreview.classList.remove('hidden');
+                        captureBtn.innerHTML = '<i class="fas fa-camera mr-2"></i>Retake';
+                    }, 'image/jpeg', 0.95);
+                }
+            } catch (err) {
+                console.error('Error accessing camera:', err);
+                alert('Could not access camera. Please check permissions.');
+            }
+        });
+    </script>
+</body>
+</html>

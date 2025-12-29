@@ -1,0 +1,75 @@
+
+{
+    "name": "Attendance App",
+    "short_name": "Attendance",
+    "description": "Automated school attendance with face recognition, offline sync, and 100m geofencing. Works offline as well",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#007bff",
+    "lang": "en",
+    
+    "icons": [
+        {
+            "src": "/static/icons/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/static/icons/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "/static/app_privew/phone.png",
+            "type": "image/png",
+            "sizes": "435x766",
+            "form_factor": "narrow",
+            "label": "EduConnect on phone"
+        },
+        {
+            "src": "/static/app_privew/phone-student-dash.png",
+            "type": "image/png",
+            "sizes": "424x751",
+            "form_factor": "narrow",
+            "label": "Student dashboard (phone)"
+        },
+        {
+            "src": "/static/app_privew/phone-teach-dash.png",
+            "type": "image/png",
+            "sizes": "422x752",
+            "form_factor": "narrow",
+            "label": "Teacher dashboard (phone)"
+        },
+        {
+            "src": "/static/app_privew/desktop.png",
+            "type": "image/png",
+            "sizes": "1899x875",
+            "form_factor": "wide",
+            "label": "EduConnect on desktop"
+        },
+        {
+            "src": "/static/app_privew/desktop-login.png",
+            "type": "image/png",
+            "sizes": "1918x858",
+            "form_factor": "wide",
+            "label": "Login (desktop)"
+        },
+        {
+            "src": "/static/app_privew/desktop-student-dash.png",
+            "type": "image/png",
+            "sizes": "1895x866",
+            "form_factor": "wide",
+            "label": "Student dashboard (desktop)"
+        },
+        {
+            "src": "/static/app_privew/desktop-teacher-dash.png",
+            "type": "image/png",
+            "sizes": "1918x864",
+            "form_factor": "wide",
+            "label": "Teacher dashboard (desktop)"
+        }
+    ]
+}
